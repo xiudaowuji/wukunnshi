@@ -19,3 +19,16 @@ CREATE TABLE IF NOT EXISTS submit_log (
 );
 
 CREATE INDEX IF NOT EXISTS idx_submit_log ON submit_log (ip, ts);
+
+-- 访问统计：每个 (页面, 天, IP) 一行，n 是当天次数
+-- PV = SUM(n)，UV = COUNT(DISTINCT ip)；IP 同样只存哈希
+CREATE TABLE IF NOT EXISTS hits (
+  page TEXT    NOT NULL,
+  day  TEXT    NOT NULL,
+  ip   TEXT    NOT NULL,
+  n    INTEGER NOT NULL DEFAULT 0,
+  ts   INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (page, day, ip)
+);
+
+CREATE INDEX IF NOT EXISTS idx_hits_day ON hits (page, day);

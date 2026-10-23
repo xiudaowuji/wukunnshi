@@ -128,6 +128,29 @@ ok('预检返回 CORS', pre.status === 204 && pre.headers.get('access-control-al
 const badDb = await worker.fetch(new Request('https://lb.test/top'), {});
 ok('没绑定数据库时报 500', badDb.status === 500);
 
+/* ---------- 5. 访问统计 ---------- */
+const hitIp = ip();
+r = await call('GET', '/hit?p=index', undefined, hitIp);
+ok('首次访问计数', r.status === 200 && r.data.counted === true, JSON.stringify(r.data));
+
+r = await call('GET', '/hit?p=index', undefined, hitIp);
+ok('4 秒内重复访问不计数', r.status === 200 && r.data.counted === false, JSON.stringify(r.data));
+
+r = await call('GET', '/hit?p=index', undefined, ip());
+ok('换 IP 算新的 UV', r.data.counted === true, JSON.stringify(r.data));
+
+const st = await call('GET', '/stats?p=index&days=3');
+ok('统计返回今天的 PV/UV', st.status === 200 && st.data.today.pv === 2 && st.data.today.uv === 2,
+  JSON.stringify(st.data.today));
+ok('统计返回按天序列', Array.isArray(st.data.days) && st.data.days.length === 3 && st.data.days[2].pv === 2,
+  JSON.stringify(st.data.days));
+
+r = await call('GET', '/hit?p=%3Cscript%3E', undefined, ip());
+ok('非法页面名回落到 index', r.status === 200 && r.data.page === 'index', JSON.stringify(r.data));
+
+const st2 = await call('GET', '/stats?p=index&days=90');
+ok('days 上限被夹住', st2.status === 200 && st2.data.days.length === 90, 'len=' + st2.data.days.length);
+
 /* ---------- 汇总 ---------- */
 console.log(out.join('\n'));
 const failed = out.filter((l) => l.startsWith('FAIL')).length;

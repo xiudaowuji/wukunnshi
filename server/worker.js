@@ -118,6 +118,74 @@ async function handleTop(url, env) {
   return json({ ok: true, count: rows.length, rows });
 }
 
+/* ---------- 访问统计 ---------- */
+// 同一 IP 同一页面，4 秒内只算一次，防止刷新/连点把 PV 刷爆
+const HIT_WINDOW_MS = 4000;
+const DAY_OFFSET_MS = 8 * 60 * 60 * 1000;   // 按北京时间分天
+
+function dayOf(ts) {
+  return new Date(ts + DAY_OFFSET_MS).toISOString().slice(0, 10);
+}
+
+// 页面名只允许字母数字下划线短横线，别的一律当 index
+function parsePage(v) {
+  const s = String(v == null ? '' : v).trim().toLowerCase();
+  return /^[a-z0-9_-]{1,24}$/.test(s) ? s : 'index';
+}
+
+async function handleHit(url, request, env) {
+  const page = parsePage(url.searchParams.get('p'));
+  const now = Date.now();
+  const day = dayOf(now);
+  const key = await clientKey(request, env);
+
+  const res = await env.DB.prepare(
+    'INSERT INTO hits (page, day, ip, n, ts) VALUES (?, ?, ?, 1, ?) ' +
+    'ON CONFLICT(page, day, ip) DO UPDATE SET n = n + 1, ts = excluded.ts ' +
+    'WHERE excluded.ts - hits.ts >= ?'
+  ).bind(page, day, key, now, HIT_WINDOW_MS).run();
+
+  const counted = !!(res && res.meta && res.meta.changes > 0);
+  return json({ ok: true, page, counted });
+}
+
+async function handleStats(url, env) {
+  const page = parsePage(url.searchParams.get('p'));
+  const days = clamp(parseInt(url.searchParams.get('days') || '14', 10) || 14, 1, 90);
+  const now = Date.now();
+  const today = dayOf(now);
+  const since = dayOf(now - (days - 1) * 24 * 60 * 60 * 1000);
+
+  const total = await env.DB.prepare(
+    'SELECT IFNULL(SUM(n), 0) AS pv, COUNT(DISTINCT ip) AS uv FROM hits WHERE page = ?'
+  ).bind(page).first();
+
+  const todayRow = await env.DB.prepare(
+    'SELECT IFNULL(SUM(n), 0) AS pv, COUNT(DISTINCT ip) AS uv FROM hits WHERE page = ? AND day = ?'
+  ).bind(page, today).first();
+
+  const { results } = await env.DB.prepare(
+    'SELECT day, SUM(n) AS pv, COUNT(DISTINCT ip) AS uv FROM hits WHERE page = ? AND day >= ? GROUP BY day ORDER BY day'
+  ).bind(page, since).all();
+
+  const byDay = {};
+  (results || []).forEach(function (r) { byDay[r.day] = r; });
+  const series = [];
+  for (let i = days - 1; i >= 0; i--) {
+    const d = dayOf(now - i * 24 * 60 * 60 * 1000);
+    const r = byDay[d];
+    series.push({ day: d, pv: r ? r.pv : 0, uv: r ? r.uv : 0 });
+  }
+
+  return json({
+    ok: true,
+    page,
+    today: { pv: (todayRow && todayRow.pv) || 0, uv: (todayRow && todayRow.uv) || 0 },
+    total: { pv: (total && total.pv) || 0, uv: (total && total.uv) || 0 },
+    days: series
+  });
+}
+
 async function handleSubmit(request, env) {
   let raw;
   try { raw = await request.text(); } catch (e) { return fail('bad_body'); }
@@ -179,6 +247,12 @@ export default {
       }
       if (url.pathname === '/score' && request.method === 'POST') {
         return await handleSubmit(request, env);
+      }
+      if (url.pathname === '/hit' && (request.method === 'GET' || request.method === 'POST')) {
+        return await handleHit(url, request, env);
+      }
+      if (url.pathname === '/stats' && request.method === 'GET') {
+        return await handleStats(url, env);
       }
       return fail('not_found', 404);
     } catch (e) {

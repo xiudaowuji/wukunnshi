@@ -600,6 +600,17 @@ function lbSubmit(name, value) {
   return lbFetch('/score', { method: 'POST', body: { name: name, score: value } });
 }
 
+// 访问统计：只在云模式下打点，失败静默，绝不影响游戏
+let hitPlayed = false;
+function lbHit(page) {
+  if (!lbIsCloud() || typeof fetch !== 'function') return;
+  try {
+    fetch(LB_API + '/hit?p=' + encodeURIComponent(page), {
+      method: 'GET', cache: 'no-store', keepalive: true, mode: 'cors'
+    }).catch(function () {});
+  } catch (e) {}
+}
+
 /* ---------- 渲染 ---------- */
 function lbSetMsg(text, isErr) {
   const el = $('lbMsg');
@@ -1490,6 +1501,7 @@ function startGame() {
   lastFrame = 0; acc = 0;
   updateNextUI();
   status = 'playing';
+  if (!hitPlayed) { hitPlayed = true; lbHit('play'); }
   audio();
 }
 function restart() {
@@ -1711,6 +1723,7 @@ function boot() {
   }
 
   showOverlay('start');
+  lbHit('index');
   canvas.style.visibility = 'hidden';
   setTimeout(function () { canvas.style.visibility = 'visible'; }, 30);
   rafId = requestAnimationFrame(frame);

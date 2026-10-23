@@ -6,6 +6,8 @@
 GET  /top?limit=20   -> { ok, count, rows: [{ rank, name, score, ts }] }
 POST /score          -> { ok, rank, best, improved, rows: [...] }
      body: { "name": "吴琨", "score": 1234 }
+GET  /hit?p=index    -> { ok, page, counted }        访问打点（PV/UV）
+GET  /stats?p=index&days=14 -> { ok, today, total, days: [{day,pv,uv}] }
 GET  /health         -> { ok: true }
 ```
 
@@ -51,6 +53,35 @@ python build/build.py index.html --lb-api=https://wukunnshi-leaderboard.你的�
 > python build/build.py index.html --lb-api=https://lb.example.com
 > ```
 
+## 访问统计
+
+页面在**云模式**下会自动打两个点（本机演示模式不发任何请求）：
+
+| 页面名 | 什么时候发 |
+|---|---|
+| `index` | 页面打开时 |
+| `play` | 点「开始游戏」时（每次会话只发一次） |
+
+看数据：
+
+```bash
+curl https://你的域名/stats?p=index&days=14     # 总 PV/UV、今天、按天序列
+curl https://你的域名/stats?p=play&days=30      # 看「真的开玩」的人有多少
+```
+
+口径：
+
+- **PV** = 累计次数；**UV** = 不同 IP 数的近似值（没有 Cookie，靠 IP 哈希）
+- 同一 IP 同一页面 **4 秒内只算一次**，防止刷新/连点把数刷爆
+- 按**北京时间**分天（`dayOf()` 里 +8 小时）
+- 表 `hits` 的粒度为 `(页面, 天, IP)` 一行，`n` 是该组合当天的次数，PV = `SUM(n)`、UV = `COUNT(DISTINCT ip)`
+
+局限：
+
+- 广告拦截器会挡掉一部分请求，数字偏小
+- 被墙期间（还没绑域名时）统计不到
+- 只能统计**开了 JS 的访问**，爬虫/无 JS 客户端不计
+
 ## 本地调试
 
 ```bash
@@ -77,4 +108,4 @@ index.html?rank&lbapi=http://127.0.0.1:8787       # 直接打开排行榜
 
 ## 表结构
 
-见 [schema.sql](schema.sql)：`scores`（name 主键 + score + 时间戳）和 `submit_log`（限流用）。
+见 [schema.sql](schema.sql)：`scores`（name 主键 + score + 时间戳）、`submit_log`（提交限流）、`hits`（访问统计）。
