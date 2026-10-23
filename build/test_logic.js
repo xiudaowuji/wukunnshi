@@ -5,7 +5,11 @@ const vm = require('vm');
 const path = require('path');
 
 const ROOT = path.resolve(__dirname, '..');
-const html = fs.readFileSync(path.join(ROOT, '合成吴琨石.html'), 'utf8');
+const BUILT = ['index.html', '合成吴琨石.html'].find(f => fs.existsSync(path.join(ROOT, f)));
+if (!BUILT) throw new Error('built html not found: run build/build.py first');
+// WK_HTML 可以指向另一份构建产物，用来验证「删掉某个修复后测试会不会红」
+const target = process.env.WK_HTML || path.join(ROOT, BUILT);
+const html = fs.readFileSync(target, 'utf8');
 
 const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]);
 if (scripts.length !== 2) throw new Error('expected 2 inline scripts, got ' + scripts.length);

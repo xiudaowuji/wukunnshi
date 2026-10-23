@@ -45,6 +45,25 @@
 | 2 | 全副武装石 |
 | 1 | **吴琨石** |
 
+## 排行榜
+
+开始界面有「排行榜」入口；结算面板点「记录排行」，输入用户名就能把本局分数传上去。规则是**同名只保留最高分**，重名直接覆盖，同分时先达到的人排前面。
+
+两种模式，界面完全一样：
+
+| 模式 | 数据在哪 | 触发条件 |
+|---|---|---|
+| 本机演示（默认） | 只存在本机 localStorage | 构建时不传 `--lb-api` |
+| 云端排行 | Cloudflare Worker + D1 | 构建时传 `--lb-api=https://xxx.workers.dev` |
+
+云端后端的部署步骤见 [server/README.md](server/README.md)，一个免费 Workers 账号就够，不用自己买服务器。
+
+```bash
+python build/build.py index.html --lb-api=https://wukunnshi-leaderboard.你的子域.workers.dev
+```
+
+> 分数是客户端算的，服务端只能校验范围和提交频率，拦不住直接改代码刷分——自己人玩够了，真要做反作弊就得把游戏逻辑搬到服务端跑。
+
 ## 实现
 
 - 物理：Matter.js 0.20（内联进单文件，circle body + sleep）
@@ -52,20 +71,22 @@
 - 音效：WebAudio 现场合成，无音频文件
 - 交互：Pointer Events，`touch-action:none` 防止页面跟着滚动
 - 版面：罐子高度固定 620 逻辑单位，宽度按窗口比例在 340~480 自适应
-- 依赖：**零外部请求**，整个游戏就一个 ~226 KB 的 HTML
+- 依赖：整个游戏就一个 ~247 KB 的 HTML；不点排行榜就不发任何请求
 
 ## 重新打包
 
 ```bash
 python build/prep_images.py          # 裁切 8 张人像 -> build/images.json
 python build/build.py index.html     # 模板 + Matter.js + 图片 -> index.html
-node build/test_logic.js             # 逻辑自检（20 项）
+node build/test_logic.js             # 逻辑自检（30 项）
+node server/test_worker.mjs          # 排行榜后端自检（22 项，用 node:sqlite 冒充 D1）
 ```
 
 - 改名字 / 大小 / 分数：`build/game.template.html` 里的 `LVL` 表
 - 改掉落概率：同文件里的 `DROP_POOL`
 - 改开关的弹性数值：同文件里的 `restOf` / `fricOf` / `wallRest`
 - 换代照片：改 `build/prep_images.py` 里的 `SPEC`（每张图的裁切中心与缩放）
+- 改排行榜上限 / 名字长度：`build/game.template.html` 里的 `LB_MAX_NAME` / `LB_MAX_SCORE`，以及 `server/worker.js` 顶部的同名常量（两边要一致）
 
 ## License
 

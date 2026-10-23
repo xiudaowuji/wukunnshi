@@ -1,0 +1,13 @@
+name = "wukunnshi-leaderboard"
+main = "worker.js"
+compatibility_date = "2026-10-01"
+
+# 免费额度对一个小游戏足够：D1 每天 500 万行读取 / 10 万行写入
+[[d1_databases]]
+binding = "DB"
+database_name = "wukunnshi-lb"
+database_id = "REPLACE_WITH_YOUR_DATABASE_ID"
+
+# 可选：自定义限流盐值（不改也不会出错）
+# [vars]
+# RATE_SALT = "换成一串你自己的随机字符"

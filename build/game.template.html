@@ -96,7 +96,6 @@ button.primary{
 }
 button.primary:hover{background:linear-gradient(180deg,#ffeab0,#f7bc45)}
 button.off{opacity:.5}
-#btnChain{display:none}
 
 /* ---------- overlay ---------- */
 #overlay{
@@ -128,9 +127,63 @@ button.off{opacity:.5}
 .chain-strip .ch.final b{color:var(--gold)}
 .chain-strip .arrow{color:#7d7295;font-size:15px;line-height:1;padding:0 2px 13px}
 .chain-strip .brk{flex-basis:100%;width:100%;height:2px}
+/* ---------- 开关 ---------- */
+.opts{display:flex;flex-direction:column;gap:6px;margin:0 0 14px}
+.opt{position:relative;display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:12px;
+  background:rgba(255,255,255,.05);border:1px solid var(--line);cursor:pointer;
+  transition:background .16s ease,border-color .16s ease;text-align:left}
+.opt:hover{background:rgba(255,255,255,.09)}
+.opt input{position:absolute;opacity:0;width:0;height:0;pointer-events:none}
+.opt-txt{flex:1 1 auto;min-width:0;line-height:1.35}
+.opt-txt b{display:block;font-size:12.5px;font-weight:700;color:#efe9f8}
+.opt-txt em{display:block;font-style:normal;font-size:10.5px;color:var(--dim);margin-top:1px}
+.opt-sw{flex:0 0 auto;width:40px;height:22px;border-radius:999px;background:#3a3350;position:relative;
+  transition:background .18s ease}
+.opt-sw::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;
+  background:#cfc6df;transition:transform .18s ease,background .18s ease}
+.opt input:checked ~ .opt-sw{background:linear-gradient(180deg,#ffe08a,#f2b134)}
+.opt input:checked ~ .opt-sw::after{transform:translateX(18px);background:#3a2400}
+.opt input:focus-visible ~ .opt-sw{box-shadow:0 0 0 2px rgba(255,209,102,.55)}
 .card .btns{display:flex;gap:8px}
 .card .btns button{flex:1;padding:12px 10px;font-size:14px}
 .hidden{display:none!important}
+
+/* ---------- leaderboard ---------- */
+.lb{display:flex;flex-direction:column;gap:7px;margin:2px 0 14px;text-align:left}
+.lb-top{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:10px;letter-spacing:.14em;color:var(--dim)}
+.mini{
+  background:none;border:1px solid var(--line);border-radius:8px;padding:3px 9px;
+  font-size:10.5px;font-weight:600;color:#cfc6df;letter-spacing:.04em;
+}
+.mini:hover{background:rgba(255,255,255,.09)}
+.lb-list{
+  list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px;
+  max-height:228px;overflow-y:auto;scrollbar-width:thin;
+}
+.lb-list li{
+  display:flex;align-items:center;gap:8px;padding:5px 9px;border-radius:10px;
+  background:rgba(255,255,255,.045);border:1px solid transparent;font-size:12px;line-height:1.4;
+}
+.lb-list li .rk{font-style:normal;flex:0 0 22px;text-align:right;color:#7f7597;font-variant-numeric:tabular-nums}
+.lb-list li .nm{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lb-list li .sc{flex:0 0 auto;font-weight:750;color:#ffe0a3;font-variant-numeric:tabular-nums}
+.lb-list li.top1 .rk{color:var(--gold);font-weight:700}
+.lb-list li.top1{background:rgba(255,209,102,.1)}
+.lb-list li.me{background:rgba(255,209,102,.16);border-color:rgba(255,209,102,.55)}
+.lb-list li.me .nm{color:var(--gold);font-weight:700}
+.lb-list li.lb-empty{justify-content:center;background:none;color:#8f85a6;font-size:11.5px;padding:12px 0}
+.lb-msg{font-size:11px;line-height:1.55;color:#9a92ae;min-height:16px}
+.lb-msg.err{color:#ff9a9a}
+.lb-form{display:flex;gap:6px}
+.lb-form input{
+  flex:1 1 auto;min-width:0;font:inherit;font-size:13px;color:var(--ink);
+  background:rgba(255,255,255,.07);border:1px solid var(--line);border-radius:10px;
+  padding:9px 10px;outline:none;letter-spacing:.02em;
+}
+.lb-form input::placeholder{color:#7d7395}
+.lb-form input:focus{border-color:rgba(255,209,102,.6);box-shadow:0 0 0 3px rgba(255,209,102,.12)}
+.lb-form button{flex:0 0 auto;padding:9px 15px;font-size:13px}
+.lb-form button[disabled]{opacity:.6;cursor:default}
 
 /* ---------- toast ---------- */
 #toast{
@@ -165,7 +218,6 @@ button.off{opacity:.5}
   #side .actions{margin-top:0;flex:0 0 auto}
   #side .actions button{padding:9px 12px;font-size:12px}
   #hint{display:none}
-  #btnChain{display:inline-block}
   #board{border-radius:20px}
   #overlay{border-radius:20px}
   .card{padding:16px 14px 14px;border-radius:18px}
@@ -173,6 +225,8 @@ button.off{opacity:.5}
   .card p{font-size:11.5px;margin-bottom:12px}
   .chain-strip .ch{width:34px}
   .chain-strip .ch img{width:25px;height:25px}
+  .lb-list{max-height:162px}
+  .lb-form input{font-size:12.5px;padding:8px 9px}
 }
 @media (max-height:560px){
   #hint{display:none}
@@ -200,9 +254,31 @@ button.off{opacity:.5}
             <p id="ovSub">两块相同的吴琨石相撞就会合成，数字越小越难合成。</p>
             <div class="stats hidden" id="ovStats"></div>
             <div class="chain-strip" id="ovChain"></div>
+            <div class="opts" id="ovOpts">
+              <label class="opt">
+                <input type="checkbox" data-opt="bounce">
+                <span class="opt-txt"><b>大弹跳</b><em>球落地弹得更欢、更滑</em></span>
+                <i class="opt-sw"></i>
+              </label>
+              <label class="opt">
+                <input type="checkbox" data-opt="mergeOne">
+                <span class="opt-txt"><b>双 1 号消除</b><em>两颗吴琨石相撞就一起消失</em></span>
+                <i class="opt-sw"></i>
+              </label>
+            </div>
+            <div class="lb hidden" id="lbWrap">
+              <div class="lb-top"><span id="lbTitle">排行榜</span><button class="mini" id="lbRefresh">刷新</button></div>
+              <ol class="lb-list" id="lbList"></ol>
+              <div class="lb-msg" id="lbMsg"></div>
+              <div class="lb-form hidden" id="lbForm">
+                <input id="lbName" maxlength="12" autocomplete="nickname" enterkeyhint="send" placeholder="输入用户名，最多 12 字">
+                <button class="primary" id="lbSend">上传</button>
+              </div>
+            </div>
             <div class="btns">
               <button class="primary" id="ovBtn">开始游戏</button>
               <button id="ovClose" class="hidden">继续</button>
+              <button id="ovRank" class="hidden">排行榜</button>
             </div>
           </div>
         </div>
@@ -229,7 +305,7 @@ button.off{opacity:.5}
     <div class="panel actions" style="background:none;border:0;padding:0">
       <button id="btnRestart">重新开始</button>
       <button id="btnSound" title="音效开关">🔊</button>
-      <button id="btnChain" title="查看合成链">链</button>
+      <button id="btnChain" title="设置与合成链">⚙</button>
     </div>
 
     <div id="hint">按住拖动瞄准 · 松手投放</div>
@@ -257,16 +333,16 @@ const STEP = 1000 / 60;
 const TAU = Math.PI * 2;
 const MAX_DPR = 2.5;
 
-// 数字越小越大、越难合成
+// 数字越小越大、越难合成（半径为原尺寸的 1.25 倍，场地不变 → 更挤更难）
 const LVL = {
-  1: { r: 70, name: '吴琨石',     ring: '#ffd166', pts: 1000, tip: '1 号 · 终极形态' },
-  2: { r: 59, name: '全副武装石', ring: '#ff8fab', pts: 520,  tip: '2 号 · 头盔墨镜' },
-  3: { r: 50, name: '黑帽笑石',   ring: '#8ecae6', pts: 260,  tip: '3 号 · 黑帽微笑' },
-  4: { r: 41, name: '红瓦屋顶石', ring: '#a7e26b', pts: 140,  tip: '4 号 · 红瓦背景' },
-  5: { r: 33, name: '侧颜石',     ring: '#c9a7f5', pts: 70,   tip: '5 号 · 侧脸骑行' },
-  6: { r: 26, name: '贴脸石',     ring: '#ffb703', pts: 40,   tip: '6 号 · 近距离' },
-  7: { r: 20, name: '低头石',     ring: '#5ecfc0', pts: 20,   tip: '7 号 · 低头沉思' },
-  8: { r: 15, name: '朦胧石',     ring: '#9fb0c6', pts: 0,    tip: '8 号 · 最小' }
+  1: { r: 88, name: '吴琨石',     ring: '#ffd166', pts: 1000, tip: '1 号 · 终极形态' },
+  2: { r: 74, name: '全副武装石', ring: '#ff8fab', pts: 520,  tip: '2 号 · 头盔墨镜' },
+  3: { r: 63, name: '黑帽笑石',   ring: '#8ecae6', pts: 260,  tip: '3 号 · 黑帽微笑' },
+  4: { r: 51, name: '红瓦屋顶石', ring: '#a7e26b', pts: 140,  tip: '4 号 · 红瓦背景' },
+  5: { r: 41, name: '侧颜石',     ring: '#c9a7f5', pts: 70,   tip: '5 号 · 侧脸骑行' },
+  6: { r: 33, name: '贴脸石',     ring: '#ffb703', pts: 40,   tip: '6 号 · 近距离' },
+  7: { r: 25, name: '低头石',     ring: '#5ecfc0', pts: 20,   tip: '7 号 · 低头沉思' },
+  8: { r: 19, name: '朦胧石',     ring: '#9fb0c6', pts: 0,    tip: '8 号 · 最小' }
 };
 
 /* ============================================================
@@ -318,6 +394,22 @@ const wallR = Matter.Bodies.rectangle(W - PAD + WALL / 2, H / 2, WALL, H + WALL 
 const wallF = Matter.Bodies.rectangle(W / 2, H - PAD + WALL / 2, W + PAD * 2, WALL, WALL_OPTS);
 Matter.Composite.add(world, [wallL, wallR, wallF]);
 
+// 把当前开关应用到已存在的球和墙上（中途切换也立刻生效）
+function applyOpts() {
+  [wallL, wallR, wallF].forEach(function (w) {
+    w.restitution = wallRest();
+    w.friction = wallFric();
+  });
+  const list = Matter.Composite.allBodies(world);
+  for (let i = 0; i < list.length; i++) {
+    const b = list[i];
+    if (b.label !== 'ball' || !b.game) continue;
+    b.restitution = restOf(b.game.level);
+    b.friction = fricOf();
+    b.frictionAir = airOf();
+  }
+}
+
 // 逻辑宽度变化时，把墙和球挪到新场地里
 function applyWidth() {
   Matter.Body.setPosition(wallL, { x: PAD - WALL / 2, y: H / 2 });
@@ -360,15 +452,290 @@ let floats = [];
 let pending = [];
 const params = new URLSearchParams(location.search);
 
+// 两个可切换的玩法开关
+const opts = { bounce: false, mergeOne: true };
+
 /* ============================================================
    存储
    ============================================================ */
 function loadStore() {
   try { best = parseInt(localStorage.getItem('wk.best') || '0', 10) || 0; } catch (e) { best = 0; }
   try { muted = localStorage.getItem('wk.muted') === '1'; } catch (e) {}
+  try { opts.bounce = localStorage.getItem('wk.bounce') === '1'; } catch (e) {}
+  try { opts.mergeOne = localStorage.getItem('wk.merge1') !== '0'; } catch (e) {}
+  try { lbMine = lbNormalizeName(localStorage.getItem(NAME_KEY) || ''); } catch (e) { lbMine = ''; }
 }
 function saveBest() { try { localStorage.setItem('wk.best', String(best)); } catch (e) {} }
 function saveMute() { try { localStorage.setItem('wk.muted', muted ? '1' : '0'); } catch (e) {} }
+function saveOpts() {
+  try {
+    localStorage.setItem('wk.bounce', opts.bounce ? '1' : '0');
+    localStorage.setItem('wk.merge1', opts.mergeOne ? '1' : '0');
+  } catch (e) {}
+}
+
+/* ============================================================
+   排行榜
+   ------------------------------------------------------------
+   云端后端是一个 Cloudflare Worker + D1（见 server/），只有两个接口：
+     GET  /top?limit=20   -> { ok, rows:[{name,score,ts}] }
+     POST /score          -> { ok, rank, best, improved }
+   LB_API 留空时自动退化成「本机演示」：数据只存在 localStorage 里，
+   方便没部署后端时也能完整走一遍界面。打包时用 --lb-api=URL 注入。
+   ============================================================ */
+const LB_API = (params.get('lbapi') || __LB_API__).replace(/\/+$/, '');
+const LB_MAX_NAME = 12;
+const LB_MAX_SCORE = 100000;
+const LB_TOP = 20;
+const LB_TIMEOUT = 7000;
+const LB_KEY = 'wk.lb.local';
+const NAME_KEY = 'wk.name';
+
+let lbRows = [];          // 当前榜单缓存
+let lbMine = '';          // 当前用户名
+let lbRefreshing = false; // 正在拉榜
+let lbSubmitting = false; // 正在上传
+let ovReturn = 'start';   // 从排行榜返回哪个界面
+
+function lbIsCloud() { return !!LB_API; }
+
+// 用户名：去控制字符、折叠空白、最长 12 个字符（按码点算，emoji 不会截半）
+function lbNormalizeName(v) {
+  let s = String(v == null ? '' : v).replace(/[\u0000-\u001f\u007f-\u009f\u200b-\u200f\u2028-\u202e\ufeff]/g, '');
+  s = s.replace(/\s+/g, ' ').trim();
+  const cps = Array.from(s);
+  if (cps.length > LB_MAX_NAME) s = cps.slice(0, LB_MAX_NAME).join('').trim();
+  return s;
+}
+function lbValidScore(n) {
+  return typeof n === 'number' && isFinite(n) && Math.floor(n) === n && n >= 0 && n <= LB_MAX_SCORE;
+}
+// 分数降序；同分时先上榜的在前（服务端用 updated_at 同理）
+function lbSortRows(rows) {
+  return rows.slice().sort(function (a, b) {
+    return (b.score - a.score) || ((a.ts || 0) - (b.ts || 0));
+  });
+}
+// 同名只保留最高分
+function lbMerge(rows, name, score, ts) {
+  const out = rows.map(function (r) { return { name: r.name, score: r.score, ts: r.ts || 0 }; });
+  const hit = out.filter(function (r) { return r.name === name; })[0];
+  if (hit) {
+    if (score > hit.score) { hit.score = score; hit.ts = ts; }
+  } else {
+    out.push({ name: name, score: score, ts: ts || 0 });
+  }
+  return lbSortRows(out);
+}
+
+/* ---------- 本机演示存储 ---------- */
+function lbLocalRead() {
+  try {
+    const raw = localStorage.getItem(LB_KEY);
+    const arr = raw ? JSON.parse(raw) : [];
+    if (!Array.isArray(arr)) return [];
+    return arr.filter(function (r) {
+      return r && typeof r.name === 'string' && lbValidScore(r.score);
+    }).map(function (r) {
+      return { name: lbNormalizeName(r.name), score: r.score, ts: +r.ts || 0 };
+    }).filter(function (r) { return r.name; });
+  } catch (e) { return []; }
+}
+function lbLocalWrite(rows) {
+  try { localStorage.setItem(LB_KEY, JSON.stringify(rows.slice(0, 100))); } catch (e) {}
+}
+
+/* ---------- 网络 ---------- */
+function lbFetch(path, init) {
+  if (typeof fetch !== 'function') return Promise.reject(new Error('no_fetch'));
+  const ctrl = (typeof AbortController === 'function') ? new AbortController() : null;
+  const timer = ctrl ? setTimeout(function () { try { ctrl.abort(); } catch (e) {} }, LB_TIMEOUT) : 0;
+  const opt = { cache: 'no-store' };
+  if (ctrl) opt.signal = ctrl.signal;
+  if (init && init.method) opt.method = init.method;
+  if (init && init.body) {
+    opt.headers = { 'content-type': 'application/json' };
+    opt.body = JSON.stringify(init.body);
+  }
+  return fetch(LB_API + path, opt).then(function (res) {
+    return res.text().then(function (txt) {
+      let data = null;
+      try { data = txt ? JSON.parse(txt) : null; } catch (e) {}
+      if (!res.ok) throw new Error((data && data.error) || ('http_' + res.status));
+      if (!data || data.ok === false) throw new Error((data && data.error) || 'bad_payload');
+      return data;
+    });
+  }).then(function (d) {
+    if (timer) clearTimeout(timer);
+    return d;
+  }, function (e) {
+    if (timer) clearTimeout(timer);
+    throw e;
+  });
+}
+function lbLoadTop() {
+  if (!lbIsCloud()) return Promise.resolve({ demo: true, rows: lbLocalRead() });
+  return lbFetch('/top?limit=' + LB_TOP, { method: 'GET' }).then(function (d) {
+    return {
+      demo: false,
+      rows: (d.rows || []).map(function (r) {
+        return { name: lbNormalizeName(r.name), score: r.score, ts: +r.ts || 0 };
+      })
+    };
+  });
+}
+function lbSubmit(name, value) {
+  if (!lbIsCloud()) {
+    const ts = Date.now();
+    const rows = lbMerge(lbLocalRead(), name, value, ts);
+    lbLocalWrite(rows);
+    const rank = rows.map(function (r) { return r.name; }).indexOf(name) + 1;
+    return Promise.resolve({ demo: true, rows: rows, rank: rank, best: value, improved: true });
+  }
+  return lbFetch('/score', { method: 'POST', body: { name: name, score: value } });
+}
+
+/* ---------- 渲染 ---------- */
+function lbSetMsg(text, isErr) {
+  const el = $('lbMsg');
+  el.textContent = text || '';
+  el.className = 'lb-msg' + (isErr ? ' err' : '');
+}
+function lbRender(rows, me) {
+  const ol = $('lbList');
+  ol.innerHTML = '';
+  if (!rows.length) {
+    const li = document.createElement('li');
+    li.className = 'lb-empty';
+    li.textContent = lbIsCloud() ? '还没有人上榜，来做第一个' : '本机还没有记录';
+    ol.appendChild(li);
+    return;
+  }
+  rows.slice(0, LB_TOP).forEach(function (r, i) {
+    const li = document.createElement('li');
+    if (i === 0) li.className = 'top1';
+    if (r.name === me) li.className = (li.className ? li.className + ' ' : '') + 'me';
+    const rk = document.createElement('i'); rk.className = 'rk'; rk.textContent = (i + 1) + '.';
+    const nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = r.name;
+    const sc = document.createElement('span'); sc.className = 'sc'; sc.textContent = String(r.score);
+    li.appendChild(rk); li.appendChild(nm); li.appendChild(sc);
+    ol.appendChild(li);
+  });
+}
+
+/* ---------- 交互 ---------- */
+function lbRefresh() {
+  if (lbRefreshing) return;
+  lbRefreshing = true;
+  lbLoadTop().then(function (d) {
+    lbRows = d.rows;
+    lbRender(lbRows, lbMine);
+    if (d.demo) lbSetMsg('本机演示模式：未连接云端，成绩只保存在这台设备');
+    else if (!lbRows.length) lbSetMsg('还没有人上榜');
+    else lbSetMsg('共 ' + lbRows.length + ' 条记录' + (lbRows.length > LB_TOP ? ' · 显示前 ' + LB_TOP + ' 名' : ''));
+  }).catch(function (e) {
+    lbRows = [];
+    lbRender(lbRows, lbMine);
+    lbSetMsg('连不上排行榜服务，稍后再试（本局分数仍会记在本机最高分里）', true);
+  }).then(function () { lbRefreshing = false; });
+}
+
+function showRank(from, withForm) {
+  ovReturn = from || 'start';
+  overlay.classList.add('show');
+  const title = $('ovTitle'), sub = $('ovSub'), btn = $('ovBtn'), close = $('ovClose'), rankBtn = $('ovRank');
+  $('ovStats').classList.add('hidden');
+  $('ovChain').classList.add('hidden');
+  $('ovOpts').classList.add('hidden');
+  $('lbWrap').classList.remove('hidden');
+  close.classList.add('hidden');
+  rankBtn.classList.add('hidden');
+
+  title.textContent = '排行榜';
+  btn.textContent = '返回';
+  btn.onclick = function () { showOverlay(ovReturn); };
+  btn.classList.toggle('primary', !withForm);
+  $('lbTitle').textContent = lbIsCloud() ? '云端排行 · 最高分' : '本机排行 · 演示模式';
+
+  const form = $('lbForm');
+  if (withForm) {
+    form.classList.remove('hidden');
+    sub.innerHTML = '本局 <b style="color:#ffd166">' + score + '</b> 分，留个名字上榜；<br>同名只保留最高分，重名直接覆盖。';
+    const input = $('lbName');
+    input.value = lbMine;
+    setTimeout(function () {
+      try {
+        input.focus();
+        const n = input.value.length;
+        input.setSelectionRange(n, n);
+      } catch (e) {}
+    }, 80);
+    lbSetMsg('输入用户名后点「上传」');
+    const send = $('lbSend');
+    send.disabled = false;
+    send.textContent = '上传';
+  } else {
+    form.classList.add('hidden');
+    sub.innerHTML = '所有玩家的最高分，同名覆盖取最高。<br>玩完一局就能记录自己的成绩。';
+    lbSetMsg(lbIsCloud() ? '加载中…' : '本机演示模式');
+  }
+  status = (from === 'over') ? 'over' : 'ready';
+  lbRefresh();
+}
+
+function lbDoSubmit() {
+  if (lbSubmitting) return;
+  const input = $('lbName');
+  const name = lbNormalizeName(input ? input.value : '');
+  if (!name) {
+    lbSetMsg('先输入一个用户名（最多 12 个字）', true);
+    try { input.focus(); } catch (e) {}
+    return;
+  }
+  if (!lbValidScore(score)) {
+    lbSetMsg('分数异常，没能上传', true);
+    return;
+  }
+  lbMine = name;
+  try { localStorage.setItem(NAME_KEY, name); } catch (e) {}
+
+  lbSubmitting = true;
+  const send = $('lbSend');
+  send.disabled = true;
+  send.textContent = '上传中…';
+  lbSetMsg('正在上传…');
+
+  lbSubmit(name, score).then(function (d) {
+    const rows = d.rows ? lbSortRows(d.rows) : lbMerge(lbRows, name, score, Date.now());
+    lbRows = rows;
+    const rank = d.rank || (rows.map(function (r) { return r.name; }).indexOf(name) + 1);
+    lbRender(lbRows, name);
+    if (d.improved === false) {
+      lbSetMsg('已记录，但你以前的最高分更高（' + d.best + '），榜单保持原样');
+    } else {
+      lbSetMsg('上榜成功：第 ' + rank + ' 名 · ' + (d.best || score) + ' 分');
+      toast('已上榜 · 第 ' + rank + ' 名');
+    }
+    $('lbForm').classList.add('hidden');
+  }).catch(function (e) {
+    const why = (e && e.message === 'no_fetch') ? '这个浏览器不支持上传' : '网络或服务器出了点问题，稍后再试';
+    lbSetMsg('上传失败：' + why, true);
+  }).then(function () {
+    lbSubmitting = false;
+    send.disabled = false;
+    send.textContent = '上传';
+  });
+}
+
+
+// 球的弹性 / 摩擦：大弹跳模式更弹、更滑
+function restOf(level) {
+  return opts.bounce ? (0.40 + (8 - level) * 0.012) : (0.05 + (8 - level) * 0.008);
+}
+function fricOf() { return opts.bounce ? 0.20 : 0.38; }
+function airOf() { return opts.bounce ? 0.0008 : 0.002; }
+function wallRest() { return opts.bounce ? 0.52 : 0.02; }
+function wallFric() { return opts.bounce ? 0.16 : 0.45; }
 
 /* ============================================================
    音效（WebAudio，无外部文件）
@@ -419,10 +786,10 @@ function makeBall(level, x, y, pop) {
   const cfg = LVL[level];
   const b = Matter.Bodies.circle(x, y, cfg.r, {
     label: 'ball',
-    restitution: 0.05 + (8 - level) * 0.008,
-    friction: 0.38,
+    restitution: restOf(level),
+    friction: fricOf(),
     frictionStatic: 0.62,
-    frictionAir: 0.002,
+    frictionAir: airOf(),
     density: 0.0012,
     slop: 0.02,
     sleepThreshold: 80
@@ -448,6 +815,17 @@ function allBalls() {
 }
 function clampX(x, r) { return clamp(x, PAD + r + 1, W - PAD - r - 1); }
 
+// Matter 只在「被移动的东西撞到」时唤醒睡着的球。合成会把下面的球直接移除，
+// 上方的球既没被撞到、支撑又没了，就会一直悬空。所以每次有球消失后手动叫醒。
+function wakeBalls() {
+  const list = Matter.Composite.allBodies(world);
+  for (let i = 0; i < list.length; i++) {
+    const b = list[i];
+    if (b.label !== 'ball' || !b.game || b.game.dead) continue;
+    if (b.isSleeping) Matter.Sleeping.set(b, false);
+  }
+}
+
 /* ============================================================
    合成
    ============================================================ */
@@ -459,6 +837,8 @@ Matter.Events.on(engine, 'collisionStart', function (evt) {
     if (!a.game || !b.game) continue;
     if (a.game.dead || b.game.dead) continue;
     if (a.game.level !== b.game.level) continue;
+    // 关掉「双 1 号消除」时，两颗吴琨石就只是普通地撞在一起
+    if (a.game.level === 1 && !opts.mergeOne) continue;
     a.game.dead = true;
     b.game.dead = true;
     pending.push([a, b]);
@@ -478,6 +858,7 @@ function resolvePending() {
     const vy = (a.velocity.y + b.velocity.y) * 0.25;
     Matter.Composite.remove(world, a);
     Matter.Composite.remove(world, b);
+    wakeBalls();
 
     if (lv === 1) {
       // 两块吴琨石相撞：直接双石合一
@@ -1033,15 +1414,22 @@ function buildChains() {
 
 function showOverlay(kind) {
   overlay.classList.add('show');
-  const title = $('ovTitle'), sub = $('ovSub'), stats = $('ovStats'), btn = $('ovBtn'), close = $('ovClose');
+  const title = $('ovTitle'), sub = $('ovSub'), stats = $('ovStats'), btn = $('ovBtn'), close = $('ovClose'), rankBtn = $('ovRank');
   stats.classList.add('hidden');
   close.classList.add('hidden');
+  rankBtn.classList.add('hidden');
+  $('lbWrap').classList.add('hidden');
+  $('ovChain').classList.remove('hidden');
+  $('ovOpts').classList.remove('hidden');
 
   if (kind === 'start') {
     title.textContent = '合成吴琨石';
     sub.innerHTML = '两块相同的吴琨石相撞就会合成，<b style="color:#ffd166">数字越小越难合成</b>。<br>每颗随机掉出 <b>5~8 号</b>，一路合到 1 号「吴琨石」。<br><span style="color:#8f85a6">按住拖动瞄准，松手投放</span>';
     btn.textContent = '开始游戏';
     btn.onclick = startGame;
+    rankBtn.classList.remove('hidden');
+    rankBtn.textContent = '排行榜';
+    rankBtn.onclick = function () { showRank('start', false); };
     status = 'ready';
   } else if (kind === 'over') {
     title.textContent = '罐子满了';
@@ -1056,10 +1444,13 @@ function showOverlay(kind) {
     }
     btn.textContent = '再来一局';
     btn.onclick = restart;
+    rankBtn.classList.remove('hidden');
+    rankBtn.textContent = '记录排行';
+    rankBtn.onclick = function () { showRank('over', true); };
     status = 'over';
-  } else if (kind === 'chain') {
-    title.textContent = '合成链';
-    sub.innerHTML = '数字越小越难合成，两块相同的相撞即可升级。';
+  } else if (kind === 'info') {
+    title.textContent = '设置';
+    sub.innerHTML = '两个开关随时能改，改完点继续。';
     btn.textContent = '继续游戏';
     btn.onclick = resume;
     close.classList.add('hidden');
@@ -1118,6 +1509,7 @@ function toggleMute() {
    ============================================================ */
 function runSelfTest() {
   const out = [];
+  opts.bounce = false; opts.mergeOne = true; applyOpts();
   const ok = (name, cond, extra) => out.push((cond ? 'PASS ' : 'FAIL ') + name + (extra ? '  [' + extra + ']' : ''));
   const ballsNow = () => allBalls();
   const advance = (n) => {
@@ -1158,10 +1550,33 @@ function runSelfTest() {
   ok('两个 1 号相撞后消失', bl.length === 0, 'bodies=' + bl.length);
   ok('双石合一 +2000', score === 2000, 'score=' + score);
 
+  // 3b) 关掉开关后，两颗 1 号只是普通碰撞
+  opts.mergeOne = false; applyOpts();
+  resetWorld(); now += 1000; status = 'playing';
+  addBall(makeBall(1, 170, 300));
+  addBall(makeBall(1, 200, 300));
+  advance(30);
+  bl = ballsNow();
+  ok('关掉后两个 1 号不会消失', bl.length === 2, 'bodies=' + bl.length);
+  ok('关掉后双石合一不加分', score === 0, 'score=' + score);
+  opts.mergeOne = true; applyOpts();
+
+  // 3c) 大弹跳开关影响弹性
+  opts.bounce = false; applyOpts();
+  const rOff = restOf(6);
+  opts.bounce = true; applyOpts();
+  const rOn = restOf(6);
+  const ballOn = makeBall(6, 200, 300);
+  ok('大弹跳提高弹性', rOn > rOff + 0.2 && ballOn.restitution === rOn, rOff.toFixed(3) + ' → ' + rOn.toFixed(3));
+  opts.bounce = false; applyOpts();
+  ok('关掉后恢复原弹性', Math.abs(restOf(6) - rOff) < 1e-9, restOf(6).toFixed(3));
+
   // 4) 目标球半径与位置限制
   const big = makeBall(1, 0, 300);
-  ok('1 号半径 70', big.circleRadius === 70, 'r=' + big.circleRadius);
-  ok('clampX 不让球出界', clampX(-99, 70) === 84 && clampX(999, 70) === 316, clampX(-99, 70) + ',' + clampX(999, 70));
+  ok('1 号半径 88', big.circleRadius === 88, 'r=' + big.circleRadius);
+  ok('clampX 不让球出界', clampX(-99, 88) === 102 && clampX(999, 88) === 298, clampX(-99, 88) + ',' + clampX(999, 88));
+  ok('最小的 8 号半径 19', makeBall(8, 200, 300).circleRadius === 19);
+  ok('最大掉落球（5 号）能放进投放位', DROP_Y - LVL[5].r > 0, 'top=' + (DROP_Y - LVL[5].r));
 
   // 5) 危险线：静止在线上方的球会触发结束
   resetWorld(); now += 1000; status = 'playing';
@@ -1172,6 +1587,24 @@ function runSelfTest() {
   overTimer = 0;
   for (let i = 0; i < 200 && status === 'playing'; i++) { checkDanger(STEP); }
   ok('球停在危险线上方会 game over', status === 'over', 'status=' + status);
+
+  // 6) 支撑物被合成掉之后，上方睡着的球必须跟着掉下来
+  //    （Matter 只在碰撞时唤醒，移除下面的球不会叫醒它，旧版会一直悬空）
+  resetWorld(); now += 1000; status = 'playing';
+  const oneA = makeBall(1, 130, 519);
+  const oneB = makeBall(1, 270, 519);
+  addBall(oneA); addBall(oneB);
+  const rider = makeBall(5, 200, 405);
+  addBall(rider);
+  Matter.Sleeping.set(rider, true);
+  const riderY0 = rider.position.y;
+  const riderAsleep = rider.isSleeping;
+  advance(1);
+  const pairGone = allBalls().length === 1;
+  advance(90);
+  ok('双石合一后上方睡着的球会掉下来',
+    riderAsleep && pairGone && rider.position.y > riderY0 + 60,
+    'asleep=' + riderAsleep + ' left=' + allBalls().length + ' y ' + Math.round(riderY0) + '→' + Math.round(rider.position.y));
 
   // 7) 随机掉落池
   const seen = {};
@@ -1190,6 +1623,25 @@ function runSelfTest() {
   ok('Matter 引擎版本', Matter.version === '0.20.0', Matter.version);
   ok('重力', engine.gravity.y === 1, engine.gravity.y);
 
+  // 9) 排行榜纯逻辑（不碰网络）
+  ok('用户名去首尾空白', lbNormalizeName('  吴琨  ') === '吴琨', JSON.stringify(lbNormalizeName('  吴琨  ')));
+  ok('用户名折叠中间空白', lbNormalizeName('吴   琨') === '吴 琨', JSON.stringify(lbNormalizeName('吴   琨')));
+  ok('用户名过滤控制字符', lbNormalizeName('吴\u0000琨\u200b') === '吴琨', JSON.stringify(lbNormalizeName('吴\u0000琨\u200b')));
+  ok('用户名超长截到 12 字', Array.from(lbNormalizeName('一二三四五六七八九十十一十二十三')).length === 12,
+    Array.from(lbNormalizeName('一二三四五六七八九十十一十二十三')).length + ' chars');
+  ok('空用户名判空', lbNormalizeName('   ') === '' && lbNormalizeName(null) === '');
+  ok('分数范围校验', lbValidScore(0) && lbValidScore(LB_MAX_SCORE) &&
+    !lbValidScore(LB_MAX_SCORE + 1) && !lbValidScore(-1) && !lbValidScore(1.5) && !lbValidScore(NaN));
+  const lbA = lbMerge([], '甲', 100, 1);
+  const lbB = lbMerge(lbA, '甲', 300, 2);
+  ok('同名只保留最高分', lbB.length === 1 && lbB[0].score === 300, JSON.stringify(lbB));
+  const lbC = lbMerge(lbB, '甲', 50, 3);
+  ok('低分不覆盖高分', lbC[0].score === 300, JSON.stringify(lbC));
+  const lbD = lbMerge([{ name: '乙', score: 200, ts: 1 }, { name: '甲', score: 900, ts: 2 }], '丙', 100, 3);
+  ok('榜单按分数降序', lbD.map(function (r) { return r.name; }).join('') === '甲乙丙',
+    lbD.map(function (r) { return r.name + ':' + r.score; }).join(','));
+  ok('同分时先上榜的在前', lbMerge([{ name: '乙', score: 100, ts: 9 }, { name: '甲', score: 100, ts: 3 }], '丙', 5, 1)[0].name === '甲');
+
   document.body.innerHTML = '<pre id="report">' + out.join('\n') + '\n' +
     (out.some(l => l.indexOf('FAIL') === 0) ? 'SELFTEST FAILED' : 'SELFTEST OK') + '</pre>';
   document.title = 'SELFTEST ' + (out.some(l => l.indexOf('FAIL') === 0) ? 'FAILED' : 'OK');
@@ -1207,7 +1659,40 @@ function boot() {
   $('btnSound').classList.toggle('off', muted);
   $('btnSound').onclick = toggleMute;
   $('btnRestart').onclick = function () { restart(); toast('已重新开始'); };
-  $('btnChain').onclick = function () { if (status === 'playing') showOverlay('chain'); };
+  $('btnChain').onclick = function () { if (status === 'playing') showOverlay('info'); };
+
+  // 排行榜：刷新 / 上传 / 回车提交 / 输入即同步
+  $('lbRefresh').onclick = function () { lbSetMsg('刷新中…'); lbRefresh(); };
+  $('lbSend').onclick = lbDoSubmit;
+  const nameInput = $('lbName');
+  if (nameInput) {
+    nameInput.value = lbMine;
+    nameInput.addEventListener('input', function () { lbMine = lbNormalizeName(this.value); });
+    nameInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); lbDoSubmit(); }
+    });
+  }
+
+  // 开关
+  const boxes = document.querySelectorAll('input[data-opt]');
+  const syncOpts = function () {
+    for (let i = 0; i < boxes.length; i++) {
+      const k = boxes[i].getAttribute('data-opt');
+      boxes[i].checked = !!opts[k];
+    }
+    applyOpts();
+  };
+  for (let i = 0; i < boxes.length; i++) {
+    boxes[i].addEventListener('change', function () {
+      const k = this.getAttribute('data-opt');
+      opts[k] = this.checked;
+      saveOpts();
+      syncOpts();
+      if (k === 'bounce') toast(this.checked ? '大弹跳：开' : '大弹跳：关');
+      else toast(this.checked ? '双 1 号可以消除' : '双 1 号不会消除了');
+    });
+  }
+  syncOpts();
 
   resize();
   if (window.ResizeObserver) {
@@ -1257,6 +1742,14 @@ function boot() {
     score = 4321; best = 5000; bestMade = 3;
     updateScoreUI();
     showOverlay('over');
+  }
+  // 预览用：?rank 打开排行榜，?sub=1234 打开「记录排行」表单
+  if (params.has('rank')) { showRank('start', false); }
+  if (params.has('sub')) {
+    score = parseInt(params.get('sub'), 10) || 1234;
+    best = Math.max(best, score);
+    updateScoreUI();
+    showRank('over', true);
   }
   if (params.has('auto')) {
     startGame();
