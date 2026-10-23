@@ -30,6 +30,27 @@ python build/build.py index.html --lb-api=https://wukunnshi-leaderboard.你的�
 
 `workers.dev` 的域名偶尔在国内不稳定，介意的话可以在 Cloudflare 里绑一个自己的域名。
 
+## 当前部署（2026-10-23）
+
+| 项 | 值 |
+|---|---|
+| Worker | `wukunnshi-leaderboard` → `https://wukunnshi-leaderboard.xiudaowuji.workers.dev` |
+| D1 | `wukunnshi-lb`，`c7eaa66c-7d86-4351-a92b-7fbb71756e58`，APAC |
+| workers.dev 子域 | `xiudaowuji` |
+| 页面接入 | **未接入**：线上仍是「本机演示」模式 |
+
+> ⚠️ **国内网络打不开 workers.dev**。实测 `api.cloudflare.com` 与 `xxx.workers.dev` 解析到同一个
+> Cloudflare 边缘 IP 时，前者 TLS 握手正常、后者直接 ECONNRESET —— 是按 SNI 域名阻断的。
+> 所以这个 Worker 目前只对海外网络（或挂了代理的设备）可用。
+>
+> 要让国内玩家也能上榜，绑一个自定义域名即可（SNI 变成自己的域名，绕开对 `workers.dev` 的阻断）：
+>
+> ```bash
+> # 域名先托管到 Cloudflare（NS 指过去），然后：
+> wrangler deploy --domain lb.example.com     # 或在 dashboard 里 Workers → 设置 → 域和路由
+> python build/build.py index.html --lb-api=https://lb.example.com
+> ```
+
 ## 本地调试
 
 ```bash

@@ -6,7 +6,7 @@ compatibility_date = "2026-10-01"
 [[d1_databases]]
 binding = "DB"
 database_name = "wukunnshi-lb"
-database_id = "REPLACE_WITH_YOUR_DATABASE_ID"
+database_id = "c7eaa66c-7d86-4351-a92b-7fbb71756e58"
 
 # 可选：自定义限流盐值（不改也不会出错）
 # [vars]
