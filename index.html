@@ -96,7 +96,6 @@ button.primary{
 }
 button.primary:hover{background:linear-gradient(180deg,#ffeab0,#f7bc45)}
 button.off{opacity:.5}
-#btnChain{display:none}
 
 /* ---------- overlay ---------- */
 #overlay{
@@ -128,6 +127,23 @@ button.off{opacity:.5}
 .chain-strip .ch.final b{color:var(--gold)}
 .chain-strip .arrow{color:#7d7295;font-size:15px;line-height:1;padding:0 2px 13px}
 .chain-strip .brk{flex-basis:100%;width:100%;height:2px}
+/* ---------- 开关 ---------- */
+.opts{display:flex;flex-direction:column;gap:6px;margin:0 0 14px}
+.opt{position:relative;display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:12px;
+  background:rgba(255,255,255,.05);border:1px solid var(--line);cursor:pointer;
+  transition:background .16s ease,border-color .16s ease;text-align:left}
+.opt:hover{background:rgba(255,255,255,.09)}
+.opt input{position:absolute;opacity:0;width:0;height:0;pointer-events:none}
+.opt-txt{flex:1 1 auto;min-width:0;line-height:1.35}
+.opt-txt b{display:block;font-size:12.5px;font-weight:700;color:#efe9f8}
+.opt-txt em{display:block;font-style:normal;font-size:10.5px;color:var(--dim);margin-top:1px}
+.opt-sw{flex:0 0 auto;width:40px;height:22px;border-radius:999px;background:#3a3350;position:relative;
+  transition:background .18s ease}
+.opt-sw::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;
+  background:#cfc6df;transition:transform .18s ease,background .18s ease}
+.opt input:checked ~ .opt-sw{background:linear-gradient(180deg,#ffe08a,#f2b134)}
+.opt input:checked ~ .opt-sw::after{transform:translateX(18px);background:#3a2400}
+.opt input:focus-visible ~ .opt-sw{box-shadow:0 0 0 2px rgba(255,209,102,.55)}
 .card .btns{display:flex;gap:8px}
 .card .btns button{flex:1;padding:12px 10px;font-size:14px}
 .hidden{display:none!important}
@@ -165,7 +181,6 @@ button.off{opacity:.5}
   #side .actions{margin-top:0;flex:0 0 auto}
   #side .actions button{padding:9px 12px;font-size:12px}
   #hint{display:none}
-  #btnChain{display:inline-block}
   #board{border-radius:20px}
   #overlay{border-radius:20px}
   .card{padding:16px 14px 14px;border-radius:18px}
@@ -200,6 +215,18 @@ button.off{opacity:.5}
             <p id="ovSub">两块相同的吴琨石相撞就会合成，数字越小越难合成。</p>
             <div class="stats hidden" id="ovStats"></div>
             <div class="chain-strip" id="ovChain"></div>
+            <div class="opts" id="ovOpts">
+              <label class="opt">
+                <input type="checkbox" data-opt="bounce">
+                <span class="opt-txt"><b>大弹跳</b><em>球落地弹得更欢、更滑</em></span>
+                <i class="opt-sw"></i>
+              </label>
+              <label class="opt">
+                <input type="checkbox" data-opt="mergeOne">
+                <span class="opt-txt"><b>双 1 号消除</b><em>两颗吴琨石相撞就一起消失</em></span>
+                <i class="opt-sw"></i>
+              </label>
+            </div>
             <div class="btns">
               <button class="primary" id="ovBtn">开始游戏</button>
               <button id="ovClose" class="hidden">继续</button>
@@ -229,7 +256,7 @@ button.off{opacity:.5}
     <div class="panel actions" style="background:none;border:0;padding:0">
       <button id="btnRestart">重新开始</button>
       <button id="btnSound" title="音效开关">🔊</button>
-      <button id="btnChain" title="查看合成链">链</button>
+      <button id="btnChain" title="设置与合成链">⚙</button>
     </div>
 
     <div id="hint">按住拖动瞄准 · 松手投放</div>
@@ -323,6 +350,22 @@ const wallR = Matter.Bodies.rectangle(W - PAD + WALL / 2, H / 2, WALL, H + WALL 
 const wallF = Matter.Bodies.rectangle(W / 2, H - PAD + WALL / 2, W + PAD * 2, WALL, WALL_OPTS);
 Matter.Composite.add(world, [wallL, wallR, wallF]);
 
+// 把当前开关应用到已存在的球和墙上（中途切换也立刻生效）
+function applyOpts() {
+  [wallL, wallR, wallF].forEach(function (w) {
+    w.restitution = wallRest();
+    w.friction = wallFric();
+  });
+  const list = Matter.Composite.allBodies(world);
+  for (let i = 0; i < list.length; i++) {
+    const b = list[i];
+    if (b.label !== 'ball' || !b.game) continue;
+    b.restitution = restOf(b.game.level);
+    b.friction = fricOf();
+    b.frictionAir = airOf();
+  }
+}
+
 // 逻辑宽度变化时，把墙和球挪到新场地里
 function applyWidth() {
   Matter.Body.setPosition(wallL, { x: PAD - WALL / 2, y: H / 2 });
@@ -365,15 +408,35 @@ let floats = [];
 let pending = [];
 const params = new URLSearchParams(location.search);
 
+// 两个可切换的玩法开关
+const opts = { bounce: false, mergeOne: true };
+
 /* ============================================================
    存储
    ============================================================ */
 function loadStore() {
   try { best = parseInt(localStorage.getItem('wk.best') || '0', 10) || 0; } catch (e) { best = 0; }
   try { muted = localStorage.getItem('wk.muted') === '1'; } catch (e) {}
+  try { opts.bounce = localStorage.getItem('wk.bounce') === '1'; } catch (e) {}
+  try { opts.mergeOne = localStorage.getItem('wk.merge1') !== '0'; } catch (e) {}
 }
 function saveBest() { try { localStorage.setItem('wk.best', String(best)); } catch (e) {} }
 function saveMute() { try { localStorage.setItem('wk.muted', muted ? '1' : '0'); } catch (e) {} }
+function saveOpts() {
+  try {
+    localStorage.setItem('wk.bounce', opts.bounce ? '1' : '0');
+    localStorage.setItem('wk.merge1', opts.mergeOne ? '1' : '0');
+  } catch (e) {}
+}
+
+// 球的弹性 / 摩擦：大弹跳模式更弹、更滑
+function restOf(level) {
+  return opts.bounce ? (0.40 + (8 - level) * 0.012) : (0.05 + (8 - level) * 0.008);
+}
+function fricOf() { return opts.bounce ? 0.20 : 0.38; }
+function airOf() { return opts.bounce ? 0.0008 : 0.002; }
+function wallRest() { return opts.bounce ? 0.52 : 0.02; }
+function wallFric() { return opts.bounce ? 0.16 : 0.45; }
 
 /* ============================================================
    音效（WebAudio，无外部文件）
@@ -424,10 +487,10 @@ function makeBall(level, x, y, pop) {
   const cfg = LVL[level];
   const b = Matter.Bodies.circle(x, y, cfg.r, {
     label: 'ball',
-    restitution: 0.05 + (8 - level) * 0.008,
-    friction: 0.38,
+    restitution: restOf(level),
+    friction: fricOf(),
     frictionStatic: 0.62,
-    frictionAir: 0.002,
+    frictionAir: airOf(),
     density: 0.0012,
     slop: 0.02,
     sleepThreshold: 80
@@ -464,6 +527,8 @@ Matter.Events.on(engine, 'collisionStart', function (evt) {
     if (!a.game || !b.game) continue;
     if (a.game.dead || b.game.dead) continue;
     if (a.game.level !== b.game.level) continue;
+    // 关掉「双 1 号消除」时，两颗吴琨石就只是普通地撞在一起
+    if (a.game.level === 1 && !opts.mergeOne) continue;
     a.game.dead = true;
     b.game.dead = true;
     pending.push([a, b]);
@@ -1062,9 +1127,9 @@ function showOverlay(kind) {
     btn.textContent = '再来一局';
     btn.onclick = restart;
     status = 'over';
-  } else if (kind === 'chain') {
-    title.textContent = '合成链';
-    sub.innerHTML = '数字越小越难合成，两块相同的相撞即可升级。';
+  } else if (kind === 'info') {
+    title.textContent = '设置';
+    sub.innerHTML = '两个开关随时能改，改完点继续。';
     btn.textContent = '继续游戏';
     btn.onclick = resume;
     close.classList.add('hidden');
@@ -1123,6 +1188,7 @@ function toggleMute() {
    ============================================================ */
 function runSelfTest() {
   const out = [];
+  opts.bounce = false; opts.mergeOne = true; applyOpts();
   const ok = (name, cond, extra) => out.push((cond ? 'PASS ' : 'FAIL ') + name + (extra ? '  [' + extra + ']' : ''));
   const ballsNow = () => allBalls();
   const advance = (n) => {
@@ -1162,6 +1228,27 @@ function runSelfTest() {
   bl = ballsNow();
   ok('两个 1 号相撞后消失', bl.length === 0, 'bodies=' + bl.length);
   ok('双石合一 +2000', score === 2000, 'score=' + score);
+
+  // 3b) 关掉开关后，两颗 1 号只是普通碰撞
+  opts.mergeOne = false; applyOpts();
+  resetWorld(); now += 1000; status = 'playing';
+  addBall(makeBall(1, 170, 300));
+  addBall(makeBall(1, 200, 300));
+  advance(30);
+  bl = ballsNow();
+  ok('关掉后两个 1 号不会消失', bl.length === 2, 'bodies=' + bl.length);
+  ok('关掉后双石合一不加分', score === 0, 'score=' + score);
+  opts.mergeOne = true; applyOpts();
+
+  // 3c) 大弹跳开关影响弹性
+  opts.bounce = false; applyOpts();
+  const rOff = restOf(6);
+  opts.bounce = true; applyOpts();
+  const rOn = restOf(6);
+  const ballOn = makeBall(6, 200, 300);
+  ok('大弹跳提高弹性', rOn > rOff + 0.2 && ballOn.restitution === rOn, rOff.toFixed(3) + ' → ' + rOn.toFixed(3));
+  opts.bounce = false; applyOpts();
+  ok('关掉后恢复原弹性', Math.abs(restOf(6) - rOff) < 1e-9, restOf(6).toFixed(3));
 
   // 4) 目标球半径与位置限制
   const big = makeBall(1, 0, 300);
@@ -1214,7 +1301,28 @@ function boot() {
   $('btnSound').classList.toggle('off', muted);
   $('btnSound').onclick = toggleMute;
   $('btnRestart').onclick = function () { restart(); toast('已重新开始'); };
-  $('btnChain').onclick = function () { if (status === 'playing') showOverlay('chain'); };
+  $('btnChain').onclick = function () { if (status === 'playing') showOverlay('info'); };
+
+  // 开关
+  const boxes = document.querySelectorAll('input[data-opt]');
+  const syncOpts = function () {
+    for (let i = 0; i < boxes.length; i++) {
+      const k = boxes[i].getAttribute('data-opt');
+      boxes[i].checked = !!opts[k];
+    }
+    applyOpts();
+  };
+  for (let i = 0; i < boxes.length; i++) {
+    boxes[i].addEventListener('change', function () {
+      const k = this.getAttribute('data-opt');
+      opts[k] = this.checked;
+      saveOpts();
+      syncOpts();
+      if (k === 'bounce') toast(this.checked ? '大弹跳：开' : '大弹跳：关');
+      else toast(this.checked ? '双 1 号可以消除' : '双 1 号不会消除了');
+    });
+  }
+  syncOpts();
 
   resize();
   if (window.ResizeObserver) {
