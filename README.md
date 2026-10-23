@@ -6,7 +6,8 @@
 
 ## 玩
 
-- 在线：**https://github.com/**（Pages 地址见仓库 About）
+- 在线玩：**https://xiudaowuji.github.io/wukunnshi/**
+- 仓库：https://github.com/xiudaowuji/wukunnshi
 - 本地：下载 `index.html` 双击即可，不需要联网、不需要装任何东西
 
 ### 操作
