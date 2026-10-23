@@ -262,16 +262,16 @@ const STEP = 1000 / 60;
 const TAU = Math.PI * 2;
 const MAX_DPR = 2.5;
 
-// 数字越小越大、越难合成
+// 数字越小越大、越难合成（半径为原尺寸的 1.25 倍，场地不变 → 更挤更难）
 const LVL = {
-  1: { r: 70, name: '吴琨石',     ring: '#ffd166', pts: 1000, tip: '1 号 · 终极形态' },
-  2: { r: 59, name: '全副武装石', ring: '#ff8fab', pts: 520,  tip: '2 号 · 头盔墨镜' },
-  3: { r: 50, name: '黑帽笑石',   ring: '#8ecae6', pts: 260,  tip: '3 号 · 黑帽微笑' },
-  4: { r: 41, name: '红瓦屋顶石', ring: '#a7e26b', pts: 140,  tip: '4 号 · 红瓦背景' },
-  5: { r: 33, name: '侧颜石',     ring: '#c9a7f5', pts: 70,   tip: '5 号 · 侧脸骑行' },
-  6: { r: 26, name: '贴脸石',     ring: '#ffb703', pts: 40,   tip: '6 号 · 近距离' },
-  7: { r: 20, name: '低头石',     ring: '#5ecfc0', pts: 20,   tip: '7 号 · 低头沉思' },
-  8: { r: 15, name: '朦胧石',     ring: '#9fb0c6', pts: 0,    tip: '8 号 · 最小' }
+  1: { r: 88, name: '吴琨石',     ring: '#ffd166', pts: 1000, tip: '1 号 · 终极形态' },
+  2: { r: 74, name: '全副武装石', ring: '#ff8fab', pts: 520,  tip: '2 号 · 头盔墨镜' },
+  3: { r: 63, name: '黑帽笑石',   ring: '#8ecae6', pts: 260,  tip: '3 号 · 黑帽微笑' },
+  4: { r: 51, name: '红瓦屋顶石', ring: '#a7e26b', pts: 140,  tip: '4 号 · 红瓦背景' },
+  5: { r: 41, name: '侧颜石',     ring: '#c9a7f5', pts: 70,   tip: '5 号 · 侧脸骑行' },
+  6: { r: 33, name: '贴脸石',     ring: '#ffb703', pts: 40,   tip: '6 号 · 近距离' },
+  7: { r: 25, name: '低头石',     ring: '#5ecfc0', pts: 20,   tip: '7 号 · 低头沉思' },
+  8: { r: 19, name: '朦胧石',     ring: '#9fb0c6', pts: 0,    tip: '8 号 · 最小' }
 };
 
 /* ============================================================
@@ -1165,8 +1165,10 @@ function runSelfTest() {
 
   // 4) 目标球半径与位置限制
   const big = makeBall(1, 0, 300);
-  ok('1 号半径 70', big.circleRadius === 70, 'r=' + big.circleRadius);
-  ok('clampX 不让球出界', clampX(-99, 70) === 84 && clampX(999, 70) === 316, clampX(-99, 70) + ',' + clampX(999, 70));
+  ok('1 号半径 88', big.circleRadius === 88, 'r=' + big.circleRadius);
+  ok('clampX 不让球出界', clampX(-99, 88) === 102 && clampX(999, 88) === 298, clampX(-99, 88) + ',' + clampX(999, 88));
+  ok('最小的 8 号半径 19', makeBall(8, 200, 300).circleRadius === 19);
+  ok('最大掉落球（5 号）能放进投放位', DROP_Y - LVL[5].r > 0, 'top=' + (DROP_Y - LVL[5].r));
 
   // 5) 危险线：静止在线上方的球会触发结束
   resetWorld(); now += 1000; status = 'playing';
