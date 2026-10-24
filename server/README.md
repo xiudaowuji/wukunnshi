@@ -11,7 +11,10 @@ GET  /stats?p=index&days=14 -> { ok, today, total, days: [{day,pv,uv}] }
 GET  /health         -> { ok: true }
 ```
 
-规则：同名只保留最高分，低分不覆盖；同分时先达到的人排前面。名字去空白、截到 12 个字符；分数必须是 0~100000 的整数；每个 IP 每分钟最多 6 次、每天 150 次提交。
+规则：同名只保留最高分，低分不覆盖；同分时先达到的人排前面。名字去空白、截到 12 个字符；分数必须是 0~500000 的整数；每个 IP 每分钟最多 6 次、每天 150 次提交。
+
+> 上限是 `server/worker.js` 的 `MAX_SCORE`、`build/game.template.html` 的 `LB_MAX_SCORE`、
+> `schema.sql` 里的 CHECK 三处一起改。已有库要跑一次 `migrate_score_cap.sql`（SQLite 不能直接改 CHECK）。
 
 ## 首次部署
 

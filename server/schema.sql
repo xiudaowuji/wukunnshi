@@ -3,7 +3,7 @@
 
 CREATE TABLE IF NOT EXISTS scores (
   name       TEXT    PRIMARY KEY,
-  score      INTEGER NOT NULL CHECK (score >= 0 AND score <= 100000),
+  score      INTEGER NOT NULL CHECK (score >= 0 AND score <= 500000),
   created_at INTEGER NOT NULL,
   updated_at INTEGER NOT NULL
 );

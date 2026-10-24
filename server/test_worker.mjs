@@ -89,7 +89,7 @@ ok('负分被拒', r.status === 400 && r.data.error === 'bad_score', JSON.string
 r = await call('POST', '/score', { name: 'x', score: 1.5 });
 ok('小数被拒', r.status === 400 && r.data.error === 'bad_score', JSON.stringify(r.data));
 
-r = await call('POST', '/score', { name: 'x', score: 100001 });
+r = await call('POST', '/score', { name: 'x', score: 500001 });
 ok('超上限被拒', r.status === 400 && r.data.error === 'bad_score', JSON.stringify(r.data));
 
 r = await call('POST', '/score', '{not json');

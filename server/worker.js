@@ -11,7 +11,7 @@
  */
 
 const MAX_NAME = 12;
-const MAX_SCORE = 100000;
+const MAX_SCORE = 500000;
 const TOP_DEFAULT = 20;
 const TOP_MAX = 50;
 const MAX_BODY = 2048;
