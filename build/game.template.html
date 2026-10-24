@@ -1788,6 +1788,7 @@ function boot() {
       ].join(' ');
       var h = document.getElementById('hint');
       h.textContent = document.title;
+      h.style.display = 'block';   /* 手机媒体查询里 #hint 是隐藏的，诊断时要显示出来 */
       h.style.fontSize = '11px';
       h.style.color = '#fff';
       h.style.height = 'auto';
