@@ -488,7 +488,7 @@ function saveOpts() {
    LB_API 留空时自动退化成「本机演示」：数据只存在 localStorage 里，
    方便没部署后端时也能完整走一遍界面。打包时用 --lb-api=URL 注入。
    ============================================================ */
-const LB_API = (params.get('lbapi') || "").replace(/\/+$/, '');
+const LB_API = (params.get('lbapi') || "https://wukunshi.me").replace(/\/+$/, '');
 const LB_MAX_NAME = 12;
 const LB_MAX_SCORE = 100000;
 const LB_TOP = 20;

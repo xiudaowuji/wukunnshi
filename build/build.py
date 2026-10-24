@@ -13,6 +13,7 @@ B = os.path.join(ROOT, "build")
 
 OUT = os.path.join(ROOT, "合成吴琨石.html")
 LB_API = ""
+LB_CACHE = os.path.join(B, ".lb-api")       # 记住上次用的后端地址，避免漏传 --lb-api 把线上打回演示模式
 for arg in sys.argv[1:]:
     if arg.startswith("--lb-api="):
         LB_API = arg.split("=", 1)[1].strip()
@@ -20,6 +21,14 @@ for arg in sys.argv[1:]:
         OUT = arg
 if not os.path.isabs(OUT):
     OUT = os.path.join(ROOT, OUT)
+
+if LB_API:
+    with open(LB_CACHE, "w", encoding="utf-8", newline="\n") as f:
+        f.write(LB_API + "\n")
+elif os.path.exists(LB_CACHE):
+    LB_API = open(LB_CACHE, encoding="utf-8").read().strip()
+    if LB_API:
+        print("leaderboard: 沿用 build/.lb-api ->", LB_API)
 
 tpl = open(os.path.join(B, "game.template.html"), encoding="utf-8").read()
 matter = open(os.path.join(B, "matter.min.js"), encoding="utf-8").read().strip()
