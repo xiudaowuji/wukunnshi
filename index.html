@@ -1788,7 +1788,8 @@ function boot() {
         'side=' + Math.round(s.width) + '@' + Math.round(s.left),
         'stage=' + Math.round(r.width) + 'x' + Math.round(r.height),
         'canvas=' + Math.round(c.width) + 'x' + Math.round(c.height),
-        'W=' + W, 'dpr=' + (window.devicePixelRatio || 1)
+        'W=' + W, 'dpr=' + (window.devicePixelRatio || 1),
+        'scale=' + (window.visualViewport ? window.visualViewport.scale : 1)
       ].join(' ');
       var h = document.getElementById('hint');
       h.textContent = document.title;
