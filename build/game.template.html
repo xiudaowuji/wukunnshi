@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#0b0810">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="format-detection" content="telephone=no">
@@ -17,7 +17,7 @@
   --line:rgba(255,255,255,.1);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;margin:0}
+html,body{height:100%;margin:0;touch-action:pan-x pan-y}
 body{
   font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
   color:var(--ink);
@@ -226,7 +226,7 @@ button.off{opacity:.5}
   .chain-strip .ch{width:34px}
   .chain-strip .ch img{width:25px;height:25px}
   .lb-list{max-height:162px}
-  .lb-form input{font-size:12.5px;padding:8px 9px}
+  .lb-form input{font-size:16px;padding:8px 9px}   /* 16px 以下 iOS 会在聚焦时自动放大页面 */
 }
 @media (max-height:560px){
   #hint{display:none}
@@ -1345,6 +1345,9 @@ function frame(t) {
    ============================================================ */
 function resize() {
   const rect = stage.getBoundingClientRect();
+  // 键盘弹出 / 地址栏收起的过渡态会给出极小的尺寸。这时如果照常重排，
+  // 画布会被缩成一小块，键盘收起后也不一定能还原，所以直接跳过。
+  if (rect.width < 80 || rect.height < 120) return;
   const availW = Math.max(120, rect.width);
   const availH = Math.max(160, rect.height);
 
@@ -1366,6 +1369,38 @@ function resize() {
   canvas.height = Math.round(ch * dpr);
   ctx.setTransform(canvas.width / W, 0, 0, canvas.height / H, 0, 0);
   ctx.imageSmoothingQuality = 'high';
+}
+
+/* ---------- 手机视口兜底 ---------- */
+// 键盘、地址栏、横竖屏切换都会连续触发好几次 resize，合并成一次
+let resizeTimer = 0;
+function queueResize() {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(resize, 120);
+}
+
+// 双指误触把页面缩小后，固定定位的整块 UI 会缩到左上角、背景却铺满屏幕。
+// 缩放停下且没有输入框聚焦时，把 viewport 重置回 1:1 把界面拉回来。
+let zoomTimer = 0;
+function checkZoom() {
+  const vv = window.visualViewport;
+  if (!vv) return;
+  clearTimeout(zoomTimer);
+  zoomTimer = setTimeout(function () {
+    const el = document.activeElement;
+    if (el && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName || '')) return;
+    if (!(vv.scale < 0.98)) return;             // 只处理被缩小的情况，放大是用户自己在看东西
+    const meta = document.querySelector('meta[name="viewport"]');
+    if (!meta) return;
+    const base = meta.getAttribute('content');
+    // 内容必须和原来不同才会触发重新计算（多加几个空格，语义不变）
+    meta.setAttribute('content',
+      'width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover');
+    setTimeout(function () {
+      meta.setAttribute('content', base);
+      resize();
+    }, 80);
+  }, 450);
 }
 
 /* ============================================================
@@ -1708,10 +1743,16 @@ function boot() {
 
   resize();
   if (window.ResizeObserver) {
-    new ResizeObserver(function () { resize(); }).observe(stage);
+    new ResizeObserver(function () { queueResize(); }).observe(stage);
   }
-  window.addEventListener('resize', resize);
+  window.addEventListener('resize', queueResize);
   window.addEventListener('orientationchange', function () { setTimeout(resize, 120); });
+  window.addEventListener('pageshow', queueResize);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) queueResize(); });
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', function () { queueResize(); checkZoom(); });
+    window.visualViewport.addEventListener('scroll', checkZoom);
+  }
 
   if (window.matchMedia && window.matchMedia('(pointer:coarse)').matches) {
     $('hint').textContent = '按住拖动瞄准 · 松手投放';
